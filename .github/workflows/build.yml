@@ -1,4 +1,4 @@
-name: Build MeiMei Client
+name: Build MeiMei Client (Raw Compile)
 
 on:
   push:
@@ -16,18 +16,19 @@ jobs:
       - name: Setup MSVC Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Ninja
-        run: choco install ninja -y
+      - name: Download ImGui
+        run: |
+          git clone --depth 1 https://github.com/ocornut/imgui.git
+          cd imgui
+          git checkout v1.90.4
 
-      - name: Configure CMake
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build Release
-        run: cmake --build build
+      - name: Compile Client
+        run: |
+          cl.exe /LD /EHsc /std:c++17 /I./imgui /I./imgui/backends MeiMei_Client_Unlinked_Full.cpp imgui/*.cpp imgui/backends/imgui_impl_win32.cpp imgui/backends/imgui_impl_dx11.cpp /link d3d11.lib /OUT:MeiMei_Client.dll
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MeiMei_Client_v5_Unlinked
-          path: build/MeiMei_Client.dll
+          path: MeiMei_Client.dll
           retention-days: 7
