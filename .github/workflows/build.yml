@@ -1,4 +1,4 @@
-name: Build Orion Drift Mod (Android ARM64 + Pak Trick)
+name: Build Orion Drift Mod (Android ARM64 + Valid Pak)
 
 on:
   push:
@@ -35,12 +35,21 @@ jobs:
             -lEGL -lGLESv3 -llog \
             -o libMeiMei.so
 
-      - name: Package for Driftrinth (Pak Trick)
+      - name: Package for Driftrinth (Valid Pak Structure)
         run: |
-          mkdir -p Driftrinth_Mod/lib/arm64-v8a
-          cp libMeiMei.so Driftrinth_Mod/lib/arm64-v8a/
-          touch Driftrinth_Mod/mod.pak
-          cd Driftrinth_Mod
+          # Create the inner pak structure
+          mkdir -p PakContent/lib/arm64-v8a
+          cp libMeiMei.so PakContent/lib/arm64-v8a/
+          
+          # Create the .pak file (many UE loaders accept standard zips renamed to .pak)
+          cd PakContent
+          zip -r ../MeiMei.pak .
+          cd ..
+          
+          # Create the final upload zip
+          mkdir -p Driftrinth_Upload
+          cp MeiMei.pak Driftrinth_Upload/
+          cd Driftrinth_Upload
           zip -r ../MeiMei_OrionDrift_Mod.zip .
 
       - name: Upload Build Artifact
