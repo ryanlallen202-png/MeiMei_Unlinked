@@ -1,38 +1,37 @@
-// MeiMei_Client_Unlinked_Full.cpp
-// Single-file, zero-link architecture. Simplified input handling.
-
-#include <windows.h>
-#include <d3d11.h>
-#include <thread>
-#include <vector>
-
+// MeiMei_Client_Android.cpp
+#include <jni.h>
+#include <android/log.h>
+#include <EGL/egl.h>
+#include <GLES3/gl3.h>
 #include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_dx11.h>
+#include <imgui_impl_opengl3.h>
 
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "MeiMei", __VA_ARGS__))
+
+// Self-contained state
 namespace ClientState {
     bool MenuOpen = true;
-    int ActiveTab = 0;
-    
-    bool Aimbot = false;
-    float AimFov = 5.0f;
-    bool SilentAim = false;
-    
-    bool EspBox = false;
-    bool EspSkeleton = false;
-    float EspDistance = 300.0f;
-    
-    bool SpeedHack = false;
-    float SpeedMultiplier = 1.5f;
-    bool NoClip = false;
-
-    ImVec4 AccentColor = ImVec4(1.0f, 0.2f, 0.4f, 1.0f);
+    bool FeatureA = false;
 }
 
-static ID3D11Device* pDevice = nullptr;
-static ID3D11DeviceContext* pContext = nullptr;
-static IDXGISwapChain* pSwapChain = nullptr;
-static bool g_Init = false;
+// Auto-execute on load
+__attribute__((constructor)) void OnLoad() {
+    LOGI("MeiMei Client v5 loaded into Orion Drift");
+    // Initialization logic hooks go here
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_driftrinth_loader_InjectionHook(JNIEnv* env, jobject thiz) {
+    LOGI("Driftrinth injection hook triggered");
+    ClientState::MenuOpen = true;
+}
+
+void RenderMenu() {
+    if (!ClientState::MenuOpen) return;
+    ImGui::Begin("MeiMei Client v5", &ClientState::MenuOpen);
+    ImGui::Checkbox("Feature A", &ClientState::FeatureA);
+    ImGui::End();
+}
 
 void RenderUnlinkedMenu() {
     if (!ClientState::MenuOpen) return;
