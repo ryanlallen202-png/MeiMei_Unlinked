@@ -1,5 +1,5 @@
 // MeiMei_Client_Unlinked_Full.cpp
-// Single-file, zero-link architecture. Fixed for ImGui master branch.
+// Single-file, zero-link architecture. Simplified input handling.
 
 #include <windows.h>
 #include <d3d11.h>
@@ -29,23 +29,10 @@ namespace ClientState {
     ImVec4 AccentColor = ImVec4(1.0f, 0.2f, 0.4f, 1.0f);
 }
 
-static WNDPROC OriginalWndProc = nullptr;
 static ID3D11Device* pDevice = nullptr;
 static ID3D11DeviceContext* pContext = nullptr;
 static IDXGISwapChain* pSwapChain = nullptr;
 static bool g_Init = false;
-
-LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    if (ClientState::MenuOpen && ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-        return true;
-
-    if (msg == WM_KEYUP && wParam == VK_INSERT) {
-        ClientState::MenuOpen = !ClientState::MenuOpen;
-        return true;
-    }
-
-    return CallWindowProc(OriginalWndProc, hWnd, msg, wParam, lParam);
-}
 
 void RenderUnlinkedMenu() {
     if (!ClientState::MenuOpen) return;
@@ -108,12 +95,16 @@ HRESULT WINAPI HookedPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT
             ImGui_ImplWin32_Init(sd.OutputWindow);
             ImGui_ImplDX11_Init(pDevice, pContext);
             
-            OriginalWndProc = (WNDPROC)SetWindowLongPtr(sd.OutputWindow, GWLP_WNDPROC, (LONG_PTR)WndProc);
             g_Init = true;
         }
     }
 
     if (g_Init) {
+        // Toggle menu with INSERT key
+        if (GetAsyncKeyState(VK_INSERT) & 1) {
+            ClientState::MenuOpen = !ClientState::MenuOpen;
+        }
+
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
