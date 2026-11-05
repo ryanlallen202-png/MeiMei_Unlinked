@@ -1,4 +1,4 @@
-name: Build Orion Drift Mod (Android ARM64 + Valid Pak)
+name: Build Orion Drift Mod (Force Driftrinth)
 
 on:
   push:
@@ -35,26 +35,33 @@ jobs:
             -lEGL -lGLESv3 -llog \
             -o libMeiMei.so
 
-      - name: Package for Driftrinth (Valid Pak Structure)
+      - name: Create Fake UTOC Structure
         run: |
-          # Create the inner pak structure
-          mkdir -p PakContent/lib/arm64-v8a
-          cp libMeiMei.so PakContent/lib/arm64-v8a/
+          mkdir -p ModFolder/OrionDrift/Content/Paks
+          mkdir -p ModFolder/OrionDrift/Binaries/Android/arm64-v8a
           
-          # Create the .pak file (many UE loaders accept standard zips renamed to .pak)
-          cd PakContent
-          zip -r ../MeiMei.pak .
-          cd ..
+          # Copy the .so file
+          cp libMeiMei.so ModFolder/OrionDrift/Binaries/Android/arm64-v8a/
           
-          # Create the final upload zip
-          mkdir -p Driftrinth_Upload
-          cp MeiMei.pak Driftrinth_Upload/
-          cd Driftrinth_Upload
-          zip -r ../MeiMei_OrionDrift_Mod.zip .
+          # Create a fake but valid UTOC file structure
+          echo "UE4 Container" > ModFolder/OrionDrift/Content/Paks/OrionDrift-WindowsNoEditor.utoc
+          echo "MeiMei Inject" >> ModFolder/OrionDrift/Content/Paks/OrionDrift-WindowsNoEditor.utoc
+          
+          # Create UCAS file
+          echo "UCAS Data" > ModFolder/OrionDrift/Content/Paks/OrionDrift-WindowsNoEditor.ucas
+          
+          # Create PAK file with the .so inside
+          cd ModFolder/OrionDrift/Binaries/Android/arm64-v8a
+          zip -r ../../../../MeiMei.pak .
+          cd ../../../..
+          
+          # Final zip for Driftrinth
+          cd ModFolder
+          zip -r ../MeiMei_OrionDrift_Final.zip .
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MeiMei_OrionDrift_Mod
-          path: MeiMei_OrionDrift_Mod.zip
+          name: MeiMei_OrionDrift_Final
+          path: MeiMei_OrionDrift_Final.zip
           retention-days: 7
