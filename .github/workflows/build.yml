@@ -1,4 +1,4 @@
-name: Build MeiMei Client (Raw Compile)
+name: Build Orion Drift Mod (Android ARM64)
 
 on:
   push:
@@ -7,14 +7,17 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup MSVC Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
+          add-to-path: true
 
       - name: Download ImGui
         run: |
@@ -22,13 +25,25 @@ jobs:
           cd imgui
           git checkout master
 
-      - name: Compile Client
+      - name: Compile Android ARM64 Shared Object
         run: |
-          cl.exe /LD /EHsc /std:c++17 /I./imgui /I./imgui/backends MeiMei_Client_Unlinked_Full.cpp imgui/*.cpp imgui/backends/imgui_impl_win32.cpp imgui/backends/imgui_impl_dx11.cpp /link d3d11.lib /OUT:MeiMei_Client.dll
+          export CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++
+          $CC -shared -fPIC -O3 -std=c++17 \
+            -I./imgui -I./imgui/backends \
+            MeiMei_Client_Android.cpp \
+            imgui/*.cpp imgui/backends/imgui_impl_opengl3.cpp \
+            -lEGL -lGLESv3 -llog \
+            -o libMeiMei.so
+
+      - name: Package for Driftrinth
+        run: |
+          mkdir -p Driftrinth_Mod
+          cp libMeiMei.so Driftrinth_Mod/
+          zip -r MeiMei_OrionDrift_Mod.zip Driftrinth_Mod/
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MeiMei_Client_v5_Unlinked
-          path: MeiMei_Client.dll
+          name: MeiMei_OrionDrift_Mod
+          path: MeiMei_OrionDrift_Mod.zip
           retention-days: 7
