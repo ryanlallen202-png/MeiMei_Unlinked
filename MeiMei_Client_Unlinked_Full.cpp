@@ -1,5 +1,4 @@
 // MeiMei_Client_Android.cpp
-// Orion Drift Mod - Android ARM64 OpenGL ES 3
 #include <jni.h>
 #include <android/log.h>
 #include <EGL/egl.h>
@@ -9,33 +8,27 @@
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "MeiMei", __VA_ARGS__))
 
+// Self-contained state
 namespace ClientState {
     bool MenuOpen = true;
-    bool SpeedHack = false;
-    float SpeedValue = 2.0f;
-    bool ESPBox = false;
+    bool FeatureA = false;
 }
 
+// Auto-execute on load
 __attribute__((constructor)) void OnLoad() {
-    LOGI("MeiMei Client v5 loaded");
+    LOGI("MeiMei Client v5 loaded into Orion Drift");
+    // Initialization logic hooks go here
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_driftrinth_loader_InjectionHook(JNIEnv* env, jobject thiz) {
-    LOGI("Injection hook triggered");
+    LOGI("Driftrinth injection hook triggered");
     ClientState::MenuOpen = true;
 }
 
 void RenderMenu() {
     if (!ClientState::MenuOpen) return;
-    
     ImGui::Begin("MeiMei Client v5", &ClientState::MenuOpen);
-    ImGui::Text("Orion Drift - Quest Mod");
-    ImGui::Separator();
-    
-    ImGui::Checkbox("Speed Hack", &ClientState::SpeedHack);
-    ImGui::SliderFloat("Speed", &ClientState::SpeedValue, 1.0f, 10.0f);
-    ImGui::Checkbox("ESP Box", &ClientState::ESPBox);
-    
+    ImGui::Checkbox("Feature A", &ClientState::FeatureA);
     ImGui::End();
 }
